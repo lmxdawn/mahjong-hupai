@@ -1,7 +1,7 @@
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class HuPai {
+public class Algorithm {
 
     /**
      * 计算翻数
@@ -39,8 +39,8 @@ public class HuPai {
                 }
             }
 
-            // 判断是否是对子胡
-            boolean isDuiZi = allMap.keySet().stream().noneMatch(vv -> allMap.get(vv) == 1 || allMap.get(vv) == 3);
+            // 玩家的手牌全部是两张一对的，没有碰过和杠过
+            boolean isQiDui = allMap.keySet().stream().noneMatch(vv -> allMap.get(vv) == 1 || allMap.get(vv) == 3);
 
             // 3个相同的有多少
             long num3 = allMap.keySet().stream().filter(vv -> allMap.get(vv) == 3).count();
@@ -52,15 +52,15 @@ public class HuPai {
 
             // 3个相同的和4个相同的有多少
             long num3And4 = num3 + num4;
-            // 判断是否是除了将牌，其它都是三个相同的
-            boolean isXiangDeng = num3And4 == allMap.size() - 1;
+            // 玩家手牌除了一对对牌以外，剩下的都是三张一对的，一共四对
+            boolean isDuiDui = num3And4 == allMap.size() - 1;
 
             Fan fan = new Fan();
             fan.setHuPai(v);
-            fan.setDuiZi(isDuiZi);
-            fan.setGangNum(num4);
+            fan.setQiDui(isQiDui);
+            fan.setNum4(num4);
             fan.setQing(isQing);
-            fan.setXiangDeng(isXiangDeng);
+            fan.setDuiDui(isDuiDui);
 
             fanList.add(fan);
         });
@@ -72,11 +72,11 @@ public class HuPai {
      * 获取胡牌的
      * @return
      */
-    private Set<Integer> getHuPai(List<Integer> arr) {
+    public Set<Integer> getHuPai(List<Integer> hai) {
 
         Map<Integer, Integer> gangMap = new HashMap<>();
         // 去掉杠的牌
-        for (Integer aVal : arr) {
+        for (Integer aVal : hai) {
             if (gangMap.containsKey(aVal)) {
                 gangMap.put(aVal, gangMap.get(aVal) + 1);
             } else {
@@ -84,28 +84,27 @@ public class HuPai {
             }
         }
 
+        int len = hai.size();
+
         Set<Integer>  huPaiSet = new HashSet<>();
 
         // 判断是否是对子胡
         int duiZiNum = (int) gangMap.keySet().stream().filter(v -> gangMap.get(v) == 1 || gangMap.get(v) == 3).count();
-        if (duiZiNum == 1) {
-            gangMap.keySet().forEach(v -> {
-                if (gangMap.get(v) == 1 || gangMap.get(v) == 3) {
-                    huPaiSet.add(v);
-                }
-            });
+
+        if (len == 13 && duiZiNum == 1) {
+            // gangMap.keySet().forEach(v -> {
+            //     if (gangMap.get(v) == 1 || gangMap.get(v) == 3) {
+            //         huPaiSet.add(v);
+            //     }
+            // });
+            // 对子胡不用刷表，直接判断
             return huPaiSet;
         }
 
-        List<Integer> hai = new ArrayList<>();
-        for (Integer aVal : arr) {
-            if (gangMap.get(aVal) != 4) {
-                hai.add(aVal);
-            }
+        int num4 = (int) gangMap.keySet().stream().filter(v -> gangMap.get(v) == 4).count();
+        if (num4 >= 1) {
+            return huPaiSet;
         }
-
-        int len = hai.size();
-
         Collections.sort(hai);
         List<Map<List<Integer>,List<Integer>>> haiList = new ArrayList<>();
 
@@ -208,6 +207,35 @@ public class HuPai {
                     huPaiSet.add(kviTemp);
                 }
             }
+            // 判断有两个相同，其它两个是连续的
+            // kvMap.keySet().forEach(kvMapV -> {
+            //     if (kvMap.get(kvMapV) == 2) {
+            //         List<Integer> kvListTemp = new ArrayList<>();
+            //         for (Integer kvjTemp : kv) {
+            //             if (kvMapV.equals(kvjTemp)) {
+            //                 continue;
+            //             }
+            //             kvListTemp.add(kvjTemp);
+            //         }
+            //         Collections.sort(kvListTemp);
+            //         Integer t0 = kvListTemp.get(0);
+            //         Integer t1 = kvListTemp.get(1);
+            //         // 判断是否连续
+            //         if (t0.equals(t1 - 1)) {
+            //             int jiang0 = t0 - 1;
+            //             int jiang1 = t1 + 1;
+            //             if (jiang0 % 10 == 0) {
+            //                 jiang0 = t0;
+            //             }
+            //             if (jiang1 % 10 == 0) {
+            //                 jiang1 = t1;
+            //             }
+            //             huPaiSet.add(jiang0);
+            //             huPaiSet.add(jiang1);
+            //         }
+            //
+            //     }
+            // });
             // System.out.printf("可以胡牌，%s，%s", kv, huPaiSet);
         }
         return huPaiSet;
@@ -276,32 +304,32 @@ public class HuPai {
 
         // 要胡的牌
         private Integer huPai;
-        // 是否是对子胡
-        private Boolean duiZi;
+        // 玩家的手牌全部是两张一对的，没有碰过和杠过
+        private Boolean qiDui;
         // 相同的四个数量
-        private Long gangNum;
+        private Long num4;
         // 是否是清一色
         private Boolean qing;
-        // 除了将其它牌是否3个组成的都相等
-        private Boolean xiangDeng;
+        // 玩家手牌除了一对对牌以外，剩下的都是三张一对的，一共四对
+        private Boolean duiDui;
 
         @Override
         public String toString() {
             return "Fan{" +
                     "huPai=" + huPai +
-                    ", duiZi=" + duiZi +
-                    ", gangNum=" + gangNum +
+                    ", qiDui=" + qiDui +
+                    ", num4=" + num4 +
                     ", qing=" + qing +
-                    ", xiangDeng=" + xiangDeng +
+                    ", duiDui=" + duiDui +
                     '}';
         }
 
-        public Boolean getXiangDeng() {
-            return xiangDeng;
+        public Boolean getDuiDui() {
+            return duiDui;
         }
 
-        public void setXiangDeng(Boolean xiangDeng) {
-            this.xiangDeng = xiangDeng;
+        public void setDuiDui(Boolean duiDui) {
+            this.duiDui = Fan.this.duiDui;
         }
 
         public Integer getHuPai() {
@@ -312,20 +340,20 @@ public class HuPai {
             this.huPai = huPai;
         }
 
-        public Boolean getDuiZi() {
-            return duiZi;
+        public Boolean getQiDui() {
+            return qiDui;
         }
 
-        public void setDuiZi(Boolean duiZi) {
-            this.duiZi = duiZi;
+        public void setQiDui(Boolean qiDui) {
+            this.qiDui = qiDui;
         }
 
-        public Long getGangNum() {
-            return gangNum;
+        public Long getNum4() {
+            return num4;
         }
 
-        public void setGangNum(Long gangNum) {
-            this.gangNum = gangNum;
+        public void setNum4(Long num4) {
+            this.num4 = num4;
         }
 
         public Boolean getQing() {
